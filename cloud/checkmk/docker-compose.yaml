@@ -1,0 +1,24 @@
+services:
+  checkmk:
+    container_name: checkmk
+    image: checkmk/check-mk-raw:latest
+    networks:
+      checkmk_network:
+    ports:
+      - "127.0.0.1:5000:5000" # Webinterface via reverse proxy
+      - "8000:8000" # Agent Port
+    restart: unless-stopped
+    tmpfs:
+      - /opt/omd/sites/cmk/tmp:uid=1000,gid=1000
+    ulimits:
+      nofile: 1024
+    volumes:
+      - monitoring:/omd/sites
+      - /etc/localtime:/etc/localtime:ro
+
+networks:
+  checkmk_network:
+
+volumes:
+  monitoring:
+  

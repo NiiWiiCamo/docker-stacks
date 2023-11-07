@@ -1,0 +1,16 @@
+services:
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    ports:
+      - 185.207.106.139:13378:80
+    volumes:
+      - media:/audiobooks
+      - config:/config
+      - metadata:/metadata
+
+volumes:
+  config:
+  media:
+    external: true
+  metadata:
+  
