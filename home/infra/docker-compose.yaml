@@ -1,0 +1,53 @@
+
+services:
+  heimdall:
+    container_name: heimdall
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    image: ghcr.io/linuxserver/heimdall
+    networks:
+      net_external:
+        ipv4_address: 172.25.0.17
+    restart: unless-stopped
+    volumes:
+      - heimdall-config:/config
+
+  nginx:
+    container_name: nginx
+    environment:
+      TZ: ${TZ}
+    image: nginx
+    networks:
+      net_external:
+        ipv4_address: 172.25.0.16
+    ports:
+      - ${LAN_IP_2}:443:443/tcp
+    restart: unless-stopped
+    volumes:
+      - nginx-config:/etc/nginx
+      - currentcerts:/mnt/dockervol/currentcerts
+
+
+  watchtower:
+    container_name: watchtower
+    environment:
+      TZ: ${TZ}
+      WATCHTOWER_CLEANUP: true
+      WATCHTOWER_POLL_INTERVAL: 900
+    image: containrrr/watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  net_external:
+    name: net_external
+    external: true
+
+volumes:
+  heimdall-config:
+  nginx-config:
+  currentcerts:
+    external: true

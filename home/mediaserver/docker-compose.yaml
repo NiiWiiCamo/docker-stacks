@@ -1,0 +1,70 @@
+version: "3.8"
+services:
+  emby:
+    container_name: emby
+    image: ghcr.io/linuxserver/emby
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 4g
+    devices:
+      - /dev/dri:/dev/dri
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - emby-config:/config
+      - currentcerts:/currentcerts
+      - ${NASPOOL}/media:/media
+      - ${NASPOOL}/backup:/backup
+      - ${SSDCACHE}/embytranscode:/ssdcache/embytranscode
+    ports:
+      - ${IP_LAN}:8096:8096
+      - ${IP_DMZ}:8096:8096
+      - ${IP_LAN}:8920:8920
+      - ${IP_LAN}:443:8920
+    networks:
+      net_external:
+        ipv4_address: 172.25.0.64
+  
+
+  calibre:
+    container_name: calibre
+    image: ghcr.io/linuxserver/calibre
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2g
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - calibre-config:/config
+      - calibre-library:/media
+      - ${NASPOOL}/media/ebooks:/import/ebooks
+    ports:
+      - ${IP_DMZ}:8088:8080
+      - ${IP_DMZ}:8084:8081
+    networks:
+      net_external:
+        ipv4_address: 172.25.0.65
+
+
+
+networks:
+  net_external:
+    name: net_external
+    external: true
+
+volumes:
+  calibre-config:
+  calibre-library:
+  currentcerts:
+    external: true
+  emby-config:

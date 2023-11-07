@@ -1,0 +1,191 @@
+services:
+
+  gluetun:
+    container_name: usenet_gluetun
+    hostname: gluetun
+    image: qmcgaw/gluetun
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_PROVIDER}
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WG_PRIVKEY}
+      - WIREGUARD_ADDRESSES=${WG_ADDRESS}
+      - SERVER_COUNTRIES=Germany
+    ports:
+      - "10.10.60.250:8080:8080" # sabnzbd
+      - "10.10.60.250:7878:7878" # radarr
+      - "10.10.60.250:8989:8989" # sonarr
+      - "10.10.60.250:17878:17878" # radarr-ger
+      - "10.10.60.250:18989:18989" # sonarr-ger
+      - "10.10.60.250:8686:8686" # lidarr
+      - "10.10.60.250:9696:9696" # prowlarr
+      - "10.10.60.250:9091:9091" # transmission
+      - "8888:8888" # HTTP proxy
+      - "8388:8388/tcp" # Shadowsocks
+      - "8388:8388/udp" # Shadowsocks
+
+  curl:
+    image: curlimages/curl
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    command: "ifconfig.me"
+    
+  lidarr:
+    container_name: lidarr
+    image: ghcr.io/linuxserver/lidarr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - lidarr-config:/config
+      - ${NASPOOL}/media:/media
+      - ${NASPOOL}/backup:/backup
+
+  prowlarr:
+    container_name: prowlarr
+    image: ghcr.io/linuxserver/prowlarr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - prowlarr-config:/config
+      - ${NASPOOL}/backup:/backup
+
+  radarr:
+    container_name: radarr
+    image: ghcr.io/linuxserver/radarr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - radarr-config:/config
+      - ${NASPOOL}/media:/media
+      - ${NASPOOL}/backup:/backup
+      
+  radarr-ger:
+    container_name: radarr-ger
+    image: ghcr.io/linuxserver/radarr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - radarr-ger-config:/config
+      - ${NASPOOL}/media:/media
+      - ${NASPOOL}/backup:/backup
+
+  sabnzbd:
+    container_name: sabnzbd
+    image: ghcr.io/linuxserver/sabnzbd
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+          memory: 16g
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - sabnzbd-config:/config
+      - ${NASPOOL}/dockervol/import:/import
+      - ${NASPOOL}/media:/media
+      - ${NASPOOL}/backup:/backup
+      - ${SSDCACHE}:/ssdcache
+  
+  sonarr:
+    container_name: sonarr
+    image: ghcr.io/linuxserver/sonarr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - sonarr-config:/config
+      - ${NASPOOL}/media:/media
+      - ${NASPOOL}/backup:/backup
+      
+  sonarr-ger:
+    container_name: sonarr-ger
+    image: ghcr.io/linuxserver/sonarr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - sonarr-ger-config:/config
+      - ${NASPOOL}/media:/media
+      - ${NASPOOL}/backup:/backup
+
+  transmission:
+    container_name: transmission
+    image: ghcr.io/linuxserver/transmission
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - USER=${TRANSMISSION_USER}
+      - PASS=${TRANSMISSION_PASS}
+    volumes:
+      - transmission-config:/config
+      - ${NASPOOL}/media:/media
+      - ${NASPOOL}/dockervol/torrentimport:/watch
+      - ${SSDCACHE}:/ssdcache
+
+volumes:
+  transmission-config:
+  prowlarr-config:
+  radarr-config:
+  sonarr-config:
+  sabnzbd-config:
+  lidarr-config:
+  sonarr-ger-config:
+  radarr-ger-config:
+  

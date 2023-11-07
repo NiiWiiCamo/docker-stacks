@@ -1,0 +1,49 @@
+services:
+  nextcloud:
+    container_name: nextcloud
+    depends_on:
+      - nextcloud-db
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    image: lscr.io/linuxserver/nextcloud:latest
+    networks:
+      net_external:
+        ipv4_address: 172.25.0.27
+    ports:
+      - ${IP_DMZ}:8443:443
+    restart: unless-stopped
+    volumes:
+      - config:/config
+      - data:/data
+      - ${NASPOOL}:/data/naspool
+      - ${RPOOL}/nas:/data/rpool/nas
+  
+  nextcloud-db:
+    container_name: nextcloud-db
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PW}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud_db_user
+      - MYSQL_PASSWORD=${MYSQL_PW}
+    image: lscr.io/linuxserver/mariadb:latest
+    networks:
+      net_external:
+        ipv4_address: 172.25.0.28
+    restart: unless-stopped
+    volumes:
+      - database:/config
+  
+networks:
+  net_external:
+    name: net_external
+    external: true
+
+volumes:
+  config:
+  data:
+  database:
