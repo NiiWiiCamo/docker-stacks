@@ -1,0 +1,33 @@
+version: "2.1"
+services:
+  unifi-network-application:
+    container_name: unifi-network-application
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      #- MEM_LIMIT=1024 #optional
+    image: lscr.io/linuxserver/unifi-network-application:latest
+    ports:
+      - 127.0.0.1:8443:8443
+      - 8080:8080
+      - 3478:3478/udp
+      - 10001:10001/udp
+      - 8880:8880
+      - 8081:8081
+      - 3478:3478
+    restart: unless-stopped
+    volumes:
+      - config:/config
+
+  unifi-db:
+    container_name: unifi-db
+    image: mongo:4.4 # latest officially supported, also latest that runs without AVX support
+    restart: unless-stopped
+    volumes:
+      - db:/data/db
+
+volumes:
+  config:
+  db:
+
