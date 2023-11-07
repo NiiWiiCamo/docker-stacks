@@ -1,0 +1,15 @@
+services:
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      LOG_LEVEL: debug
+      TZ: ${TZ}
+    ports:
+      - 127.0.0.1:5055:5055
+    volumes:
+      - config:/app/config
+    restart: unless-stopped
+
+volumes:
+  config:

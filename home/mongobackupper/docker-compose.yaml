@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+  backupper:
+    container_name: mongobackupper
+    build: https://github.com/NiiWiiCamo/docker-mongodb-backupper.git
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - MONGODB_DATABASE=${MONGODB_DATABASE}
+      - MONGODB_USER=${MONGODB_USER}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      - MONGODB_URI=${MONGODB_URI}
+      - GIT_REPONAME=${GIT_REPONAME}
+      - GIT_USEREMAIL=${GIT_USEREMAIL}
+      - GIT_USERNAME=${GIT_USERNAME}
+      - GIT_REPOURI=${GIT_REPOURI}
+    volumes:
+      - ${NASPOOL}/backup/mongodb:/data
+      - config:/config
+
+volumes:
+  config:
